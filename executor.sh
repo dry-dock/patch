@@ -1,6 +1,9 @@
-declare -a os=('u12' 'u14')
-declare -a languages=('' 'nod' 'pyt' 'php' 'rub' 'gol' 'clo' 'jav' 'sca')
+declare -a os=('u14')
+declare -a languages=('')
 declare -a languageVersions=('' 'pls' 'all')
+
+#'nod' 'pyt' 'php' 'rub' 'gol' 'clo' 'jav' 'sca'
+# 'u14'
 
 level="base"
 should_push=true
@@ -37,14 +40,14 @@ build_image(){
 
   #append imaage specific patch
   if [ -d "$CURRENT_FILE_DIR/language/$lang" ]; then
-    if [ -f "$CURRENT_FILE_DIR/language/$lang/$os$lang$langVer-patch.sh" ]; then
-      echo `cat $CURRENT_FILE_DIR/language/$lang/$os$lang$langVer-patch.sh` >> patch.sh
+    if [ -f "$CURRENT_FILE_DIR/language/$lang/$osVer$lang$langVer-patch.sh" ]; then
+      echo `cat $CURRENT_FILE_DIR/language/$lang/$osVer$lang$langVer-patch.sh` >> patch.sh
     fi
   fi
 
   create_docker_file "$osVer" "$lang" "$langVer"
 
-  docker build -t="drydock/$os$lang$langVer:prod" $CURRENT_FILE_DIR
+  docker build -t="drydock/$osVer$lang$langVer:prod" $CURRENT_FILE_DIR
 }
 
 create_patch_file() {
@@ -79,13 +82,13 @@ create_docker_file() {
 
   touch $CURRENT_FILE_DIR/Dockerfile
 
-  echo "FROM drydock/$os$lang$langVer:marker" >> Dockerfile
-  echo "ADD ./patch.sh /$os$lang$langVer/patch.sh" >> Dockerfile
-  echo "RUN ./$os$lang$langVer/patch.sh" >> Dockerfile
+  echo "FROM drydock/$osVer$lang$langVer:marker" >> Dockerfile
+  echo "ADD ./patch.sh /$osVer$lang$langVer/patch.sh" >> Dockerfile
+  echo "RUN ./$osVer$lang$langVer/patch.sh" >> Dockerfile
 }
 
 test_image() {
-  os=$1
+  osVer=$1
   lang=$2
   langVer=$3
 
@@ -104,9 +107,13 @@ test_image() {
       cp $CURRENT_FILE_DIR/'tests/'$langVer/* $CURRENT_FILE_DIR/'test'
     fi
 
+    #ls $CURRENT_FILE_DIR/test
+
     echo 'Starting tests for image -----> '$osVer$lang$langVer
     #run the commands in a daemon mode
-    containerId=$(docker run -dv $CURRENT_FILE_DIR/test:/$os$lang$langVer/test drydock/$os$lang$langVer':prod' /bin/bash -c "/$os$lang$langVer/test/executor.sh")
+    containerId=$(docker run -dv $CURRENT_FILE_DIR/test:/$osVer$lang$langVer/test drydock/$osVer$lang$langVer':prod' /bin/bash -c "/$osVer$lang$langVer/test/executor.sh")
+    docker exec $containerId /bin/bash -c "ls /$osVer$lang$langVer/test"
+    #docker exec $containerId /bin/bash -c "ls /$osVer$lang$langVer/test"
     exitCode=$(docker wait $containerId)
 
     #commands failed inside container
@@ -115,6 +122,7 @@ test_image() {
       should_push=false
       TEST_FAILED_IMAGES+=("$osVer$lang$langVer")
       docker logs $containerId
+      docker inspect $containerId
     else
       echo 'All tests passed for image -----> '$osVer$lang$langVer
       TEST_PASSED_IMAGES+=("$osVer$lang$langVer")
