@@ -1,5 +1,5 @@
 declare -a os=('u12' 'u14')
-declare -a languages=('' 'nod')
+declare -a languages=('php')
 declare -a languageVersions=('' 'pls' 'all')
 
 imageTag="prod"
@@ -64,7 +64,7 @@ create_patch_file() {
       fi
     fi
 
-    if [ "$level" == "all" ];then
+    if [ "$level" == "all" ]; then
       if [ -f "$path/all-patch.sh" ]; then
         cat $path/all-patch.sh >> patch.sh
       fi
@@ -77,18 +77,18 @@ create_patch_test_dir() {
   lang=$2
   langVer=$3
 
-  if [ -d "$current_file_dir/patch_test" ];then
+  if [ -d "$current_file_dir/patch_test" ]; then
     rm -r $current_file_dir/patch_test
   fi
 
   if [ "$lang" != "" ] || [ "$langVer" != "" ]; then
     mkdir $current_file_dir/patch_test
-    if [ "$lang" != "" ];then
+    if [ "$lang" != "" ]; then
       cp $current_file_dir'/tests/languages/'$lang'.sh' $current_file_dir/'patch_test'
       cp $current_file_dir'/tests/languages/executor.sh' $current_file_dir/'patch_test'
     fi
     # Run only pls and all tests if language is not present and services exist
-    if [ "$langVer" != "" ] && [ "$lang" == "" ];then
+    if [ "$langVer" != "" ] && [ "$lang" == "" ]; then
       cp $current_file_dir/'tests/'$langVer/* $current_file_dir/'patch_test'
     fi
   fi
@@ -120,7 +120,7 @@ test_image() {
     exitCode=$(docker wait $containerId)
 
     #commands failed inside container
-    if [ "$exitCode" != 0 ];then
+    if [ "$exitCode" != 0 ]; then
       echo 'Tests failed for image -----> '$osVer$lang$langVer
       should_push=false
       TEST_FAILED_IMAGES+=("$osVer$lang$langVer")
@@ -134,7 +134,7 @@ test_image() {
 }
 
 clear_files() {
-  if [ -d "$current_file_dir/patch_test" ];then
+  if [ -d "$current_file_dir/patch_test" ]; then
     rm -r $current_file_dir/patch_test
   fi
 
@@ -165,7 +165,7 @@ push_image() {
 
   imageId_after_push=`docker images | grep -w 'drydock/'$osVer$lang$langVer | grep $imageTag | awk {'print $3'}`
 
-  if [ "$imageId_before_push" != "$imageId_after_push" ];then
+  if [ "$imageId_before_push" != "$imageId_after_push" ]; then
     PUSH_FAILED_IMAGES+=("$osVer$lang$langVer")
   else
     SUCCESSFULLY_PATCHED_IMAGES+=("$osVer$lang$langVer")
@@ -175,7 +175,7 @@ push_image() {
 
 display_results() {
 
-  if [ ${#SUCCESSFULLY_PATCHED_IMAGES[@]} != 0 ];then
+  if [ ${#SUCCESSFULLY_PATCHED_IMAGES[@]} != 0 ]; then
     echo "<=============== SUCCESSFULLY PASSED IMAGES =================>"
     for passedImage in "${SUCCESSFULLY_PATCHED_IMAGES[@]}"
       do
@@ -183,7 +183,7 @@ display_results() {
       done
     echo "<============================================================>"
   fi
-  if [ ${#TEST_FAILED_IMAGES[@]} != 0 ];then
+  if [ ${#TEST_FAILED_IMAGES[@]} != 0 ]; then
     echo "<=============== IMAGES FOR WHICH TESTS FAILED ===============>"
     for testFailedImage in "${TEST_FAILED_IMAGES[@]}"
       do
@@ -192,7 +192,7 @@ display_results() {
     echo "<============================================================>"
   fi
 
-  if [ ${#PUSH_FAILED_IMAGES[@]} != 0 ];then
+  if [ ${#PUSH_FAILED_IMAGES[@]} != 0 ]; then
     echo "<================ IMAGES FOR WHICH PUSH FAILED ================>"
     for pushFailedImage in "${PUSH_FAILED_IMAGES[@]}"
       do
@@ -201,7 +201,7 @@ display_results() {
     echo "<============================================================>"
   fi
 
-  if [ ${#TEST_FAILED_IMAGES[@]} != 0 ] || [ ${#PUSH_FAILED_IMAGES[@]} != 0 ];then
+  if [ ${#TEST_FAILED_IMAGES[@]} != 0 ] || [ ${#PUSH_FAILED_IMAGES[@]} != 0 ]; then
     return 99
   fi
 }
@@ -214,9 +214,9 @@ for osVer in "${os[@]}"
          do
             build_image "$osVer" "$lang" "$langVer"
             test_image
-            # if [ "$should_push" = true ];then
-            #   push_image "$osVer" "$lang" "$langVer"
-            # fi
+            if [ "$should_push" == true ]; then
+              push_image "$osVer" "$lang" "$langVer"
+            fi
             clear_files
          done
       done
