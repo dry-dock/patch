@@ -1,5 +1,6 @@
+#!/bin/bash -e
 declare -a os=('u12' 'u14')
-declare -a languages=('php')
+declare -a languages=('clo' 'gol' 'jav' 'nod' 'php' 'pyt' 'rub' 'sca')
 declare -a languageVersions=('' 'pls' 'all')
 
 imageTag="prod"
@@ -81,8 +82,9 @@ create_patch_test_dir() {
     rm -r $current_file_dir/patch_test
   fi
 
+  mkdir $current_file_dir/patch_test
+
   if [ "$lang" != "" ] || [ "$langVer" != "" ]; then
-    mkdir $current_file_dir/patch_test
     if [ "$lang" != "" ]; then
       cp $current_file_dir'/tests/languages/'$lang'.sh' $current_file_dir/'patch_test'
       cp $current_file_dir'/tests/languages/executor.sh' $current_file_dir/'patch_test'
